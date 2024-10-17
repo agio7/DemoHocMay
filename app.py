@@ -25,8 +25,12 @@ def predict():
     model_name = request.form.get('model')
 
     # Kiểm tra tính hợp lệ của dữ liệu đầu vào
-    if age < 0 or experience < 0:
+    if age is None or age < 0 or experience is None or experience < 0:
         salary = "Invalid input: Age and years of experience must be non-negative."
+        return render_template('index.html', salary=salary)
+
+    if education_level not in ["Bachelor's", "Master's", "PhD"]:
+        salary = "Invalid input: Please select a valid education level."
         return render_template('index.html', salary=salary)
 
     # Mã hóa trình độ học vấn
@@ -41,7 +45,10 @@ def predict():
     input_features = np.array([[age, education_encoded, experience]])
 
     # Chọn mô hình để dự đoán
-    model = models[model_name]
+    model = models.get(model_name)
+    if model is None:
+        salary = "Invalid input: Please select a valid model."
+        return render_template('index.html', salary=salary)
     
     # Dự đoán lương
     predicted_salary = model.predict(input_features)[0]
@@ -52,4 +59,5 @@ def predict():
     return render_template('index.html', salary=f"Predicted Salary: {formatted_salary}")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))  # Sử dụng cổng từ biến môi trường
+    app.run(host="0.0.0.0", port=port)
